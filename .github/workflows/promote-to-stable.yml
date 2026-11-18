@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-FileCopyrightInfo: 2026 callmetango for XLibre
+
+name: Promote to stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch: # setup-build-env.sh uses BRANCH
+        description: The repository to promote the packages from
+        type: choice
+        options:
+          - oldstable-testing
+          - stable-testing
+        default: stable-testing
+
+defaults:
+  run:
+    shell: sh
+
+env:
+  APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+
+jobs:
+  release-packages:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Setup workspace
+        uses: callmetango/setup-workspace@HEAD
+        with:
+          inputs: ${{ toJSON(inputs) }}
+          vars: ${{ toJSON(vars) }}
+
+      - name: Promote to stable
+        run: |
+          . setup-build-env.sh
+          copy-release.sh "$BINPKGS_REPO" "$RELEASED_TAG" \
+              "$BINPKGS_STABLE_REPO" "$RELEASED_TAG"
